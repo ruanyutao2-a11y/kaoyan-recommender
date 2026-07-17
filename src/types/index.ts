@@ -46,19 +46,37 @@ export interface EvaluateResponse {
 export interface ResultResponse {
   status: EvaluationStatus
   isPaid: boolean
+  isFree?: boolean
+  freeUntil?: string
   data: PreviewResult | EvaluationResult
 }
 
-export interface OrderResponse {
+export interface SubmitPaymentResponse {
+  success: boolean
   orderId: string
-  taobaoUrl: string
-  redeemCode: string
+  autoApproved: boolean
   message: string
 }
 
-export interface RedeemResponse {
-  success: boolean
-  message: string
-  evaluationId?: string
-  data?: EvaluationResult
+export interface PaymentStatusResponse {
+  paid: boolean
+  status: 'none' | 'created' | 'paid' | 'cancelled'
+}
+
+export interface AdminOrder {
+  id: string
+  evaluation_id: string
+  status: string
+  amount: number
+  txn_ref: string | null
+  device_id: string | null
+  created_at: string
+  paid_at: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
+  notes: string | null
+}
+
+export interface AdminOrdersResponse {
+  orders: AdminOrder[]
 }
