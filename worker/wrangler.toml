@@ -14,4 +14,4 @@ id = "YOUR_KV_NAMESPACE_ID"
 [vars]
 TAOBAO_PRODUCT_URL = "https://item.taobao.com/item.htm?id=YOUR_PRODUCT_ID"
 
-# Set secrets via: npx wrangler secret put CLAUDE_API_KEY
+# Set secrets via: npx wrangler secret put DASHSCOPE_API_KEY

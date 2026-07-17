@@ -1,6 +1,6 @@
 import { EvaluationInput, EvaluationResult, PreviewResult, SchoolRecommendation } from './types'
 
-const CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages'
+const DASHSCOPE_API_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions'
 
 const SYSTEM_PROMPT = `你是一位资深考研择校顾问。你拥有中国所有研究生院招生信息的专业知识。
 
@@ -65,28 +65,31 @@ export async function generateRecommendations(
 ): Promise<{ result: EvaluationResult; preview: PreviewResult }> {
   const userPrompt = buildUserPrompt(input)
 
-  const response = await fetch(CLAUDE_API_URL, {
+  const response = await fetch(DASHSCOPE_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
+      'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: 'qwen-plus',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: userPrompt },
+      ],
       max_tokens: 4096,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: userPrompt }],
+      enable_search: true,
     }),
   })
 
   if (!response.ok) {
     const errText = await response.text()
-    throw new Error(`Claude API error: ${response.status} ${errText}`)
+    throw new Error(`DashScope API error: ${response.status} ${errText}`)
   }
 
   const data = await response.json() as any
-  const content = data.content[0].text
+  // OpenAI-compatible format: choices[0].message.content
+  const content = data.choices[0].message.content
 
   // Parse JSON from response (handle possible markdown wrapping)
   let jsonStr = content.trim()

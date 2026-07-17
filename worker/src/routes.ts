@@ -37,7 +37,7 @@ export async function handleEvaluate(c: Context) {
   }
 
   const db = c.env.DB as D1Database
-  const apiKey = c.env.CLAUDE_API_KEY as string
+  const apiKey = c.env.DASHSCOPE_API_KEY as string
 
   try {
     const id = await createEvaluation(db, body)
