@@ -122,8 +122,8 @@ export async function handleCreateOrder(c: Context) {
     return c.json({
       orderId,
       taobaoUrl,
-      redeemCode,
-      message: '请在淘宝完成付款后，使用兑换码解锁完整结果',
+      redirectUrl: taobaoUrl,
+      message: '请在淘宝完成付款后，将订单号输入兑换框即可解锁完整结果',
     })
   } catch (err: any) {
     console.error('Create order error:', err)

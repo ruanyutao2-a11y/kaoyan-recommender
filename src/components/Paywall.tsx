@@ -15,19 +15,6 @@ export default function Paywall({ evaluationId, lockedCount, onUnlocked }: Props
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
-  async function handleCreateOrder() {
-    setIsLoading(true)
-    setError('')
-    try {
-      const result = await api.createOrder(evaluationId)
-      setOrderInfo(result)
-    } catch (err: any) {
-      setError(err.message || '创建订单失败')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   async function handleRedeem() {
     if (!redeemCode.trim()) return
     setIsLoading(true)
@@ -39,6 +26,20 @@ export default function Paywall({ evaluationId, lockedCount, onUnlocked }: Props
       }
     } catch (err: any) {
       setError(err.message || '兑换失败')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Click "unlock" → go directly to Taobao first, then reveal redeem input
+  async function handleUnlock() {
+    setIsLoading(true)
+    setError('')
+    try {
+      const result = await api.createOrder(evaluationId)
+      setOrderInfo(result)
+    } catch (err: any) {
+      setError(err.message || '创建订单失败')
     } finally {
       setIsLoading(false)
     }
@@ -61,9 +62,9 @@ export default function Paywall({ evaluationId, lockedCount, onUnlocked }: Props
             仅需 9.9 元，获取完整的冲/稳/保择校方案
           </p>
 
-          <div className="flex flex-col items-center gap-3">
+          {!orderInfo ? (
             <button
-              onClick={handleCreateOrder}
+              onClick={handleUnlock}
               disabled={isLoading}
               className="px-8 py-3 bg-vermilion text-white font-medium rounded-lg
                          hover:bg-red-700 active:scale-[0.98] transition-all
@@ -71,60 +72,56 @@ export default function Paywall({ evaluationId, lockedCount, onUnlocked }: Props
             >
               {isLoading ? '处理中...' : '🔓 9.9 元解锁完整结果'}
             </button>
-
-            <button
-              onClick={() => setShowRedeem(!showRedeem)}
-              className="text-sm text-indigo hover:text-indigo/80 underline underline-offset-2"
-            >
-              {showRedeem ? '收起' : '已有兑换码？'}
-            </button>
-          </div>
-
-          {showRedeem && (
-            <div className="mt-4 flex items-center gap-2 max-w-xs mx-auto">
-              <input
-                type="text"
-                className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm font-mono uppercase
-                           focus:border-indigo focus:ring-1 focus:ring-indigo"
-                placeholder="输入兑换码"
-                value={redeemCode}
-                onChange={e => setRedeemCode(e.target.value.toUpperCase())}
-                maxLength={12}
-              />
-              <button
-                onClick={handleRedeem}
-                disabled={isLoading || redeemCode.length < 8}
-                className="px-4 py-2 bg-indigo text-white text-sm font-medium rounded-lg
-                           hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          ) : (
+            <div className="space-y-4">
+              {/* Taobao button */}
+              <a
+                href={orderInfo.taobaoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block px-8 py-3 bg-orange-500 text-white font-medium rounded-lg
+                           hover:bg-orange-600 transition-colors text-lg"
               >
-                兑换
+                前往淘宝付款 →
+              </a>
+
+              {/* Redeem section — shown after clicking unlock */}
+              <div>
+                <p className="text-graphite text-xs mb-2">
+                  付款完成后，在此输入兑换码解锁
+                </p>
+                <div className="flex items-center gap-2 max-w-xs mx-auto">
+                  <input
+                    type="text"
+                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm font-mono uppercase
+                               focus:border-indigo focus:ring-1 focus:ring-indigo"
+                    placeholder="输入兑换码"
+                    value={redeemCode}
+                    onChange={e => setRedeemCode(e.target.value.toUpperCase())}
+                    maxLength={12}
+                  />
+                  <button
+                    onClick={handleRedeem}
+                    disabled={isLoading || redeemCode.length < 8}
+                    className="px-4 py-2 bg-indigo text-white text-sm font-medium rounded-lg
+                               hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    兑换
+                  </button>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowRedeem(!showRedeem)}
+                className="text-sm text-indigo hover:text-indigo/80 underline underline-offset-2"
+              >
+                {showRedeem ? '收起' : '已有兑换码？'}
               </button>
             </div>
           )}
 
           {error && (
             <p className="mt-3 text-sm text-vermilion">{error}</p>
-          )}
-
-          {orderInfo && (
-            <div className="mt-4 p-4 bg-green-50 rounded-lg text-sm max-w-xs mx-auto">
-              <p className="text-green-800 font-medium mb-2">✅ 订单已创建</p>
-              <p className="text-green-700 mb-1">
-                兑换码：<span className="font-mono font-bold">{orderInfo.redeemCode}</span>
-              </p>
-              <a
-                href={orderInfo.taobaoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block mt-2 px-4 py-2 bg-orange-500 text-white rounded-lg
-                           hover:bg-orange-600 transition-colors text-sm"
-              >
-                前往淘宝付款 →
-              </a>
-              <p className="text-green-600/70 text-xs mt-2">
-                付款完成后，回到此页面使用上方兑换码解锁
-              </p>
-            </div>
           )}
         </div>
       </div>
