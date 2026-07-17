@@ -3,8 +3,8 @@ import HomePage from './pages/HomePage'
 import EvaluatingPage from './pages/EvaluatingPage'
 import PreviewPage from './pages/PreviewPage'
 import ResultPage from './pages/ResultPage'
-import RedeemPage from './pages/RedeemPage'
 import ComparePage from './pages/ComparePage'
+import AdminPage from './pages/AdminPage'
 
 export default function App() {
   return (
@@ -14,7 +14,7 @@ export default function App() {
         <Route path="/result/:id/preview" element={<PreviewPage />} />
         <Route path="/result/:id" element={<ResultPage />} />
         <Route path="/compare/:id" element={<ComparePage />} />
-        <Route path="/redeem" element={<RedeemPage />} />
+        <Route path="/admin" element={<AdminPage />} />
     </Routes>
   )
 }
