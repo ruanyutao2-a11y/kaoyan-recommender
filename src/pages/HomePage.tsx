@@ -14,13 +14,9 @@ export default function HomePage() {
     setError('')
     try {
       const result = await api.evaluate(input)
-      // Check if the API returned a final result synchronously (completed)
-      if ((result as any).data) {
-        // API returned the full result directly — go to result page
-        const evalId = result.evaluationId
-        // Store in sessionStorage so PreviewPage/ResultPage can use it
-        sessionStorage.setItem(`preview-${evalId}`, JSON.stringify((result as any).data))
-        navigate(`/result/${evalId}`, { replace: true })
+      // API may return 'completed' (sync LLM) or 'processing' (async/polling)
+      if (result.status === 'completed') {
+        navigate(`/result/${result.evaluationId}`, { replace: true })
       } else {
         navigate(`/evaluating/${result.evaluationId}`)
       }
