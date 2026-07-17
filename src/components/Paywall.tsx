@@ -99,41 +99,48 @@ export default function Paywall({ evaluationId, lockedCount, onUnlocked }: Props
 
           {step === 'idle' && (
             <div className="space-y-4">
-              {/* QR Codes */}
-              <div className="bg-white rounded-xl border border-gray-200 p-4">
-                <p className="text-xs text-graphite mb-3">微信或支付宝扫码付款 9.9 元</p>
-                <div className="flex gap-4 justify-center">
+              {/* QR Codes — big enough to scan from screen */}
+              <div className="bg-white rounded-xl border border-gray-200 p-5">
+                <p className="text-sm text-graphite mb-3">微信或支付宝扫码付款 9.9 元</p>
+                <div className="flex gap-6 justify-center">
                   <div className="text-center">
-                    <div className="w-28 h-28 bg-gray-100 rounded-lg mx-auto mb-1 flex items-center justify-center">
+                    <div className="w-44 h-44 bg-white rounded-xl mx-auto mb-2 flex items-center justify-center border border-gray-100 p-2">
                       <img
                         src="/qr-wechat.png"
                         alt="微信收款码"
-                        className="w-full h-full object-contain rounded-lg"
+                        className="w-full h-full object-contain"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none'
                           ;(e.target as HTMLImageElement).parentElement!.innerHTML =
-                            '<span class="text-xs text-graphite">微信<br/>收款码</span>'
+                            '<span class="text-sm text-graphite">微信<br/>收款码</span>'
                         }}
                       />
                     </div>
-                    <span className="text-xs text-graphite">微信</span>
+                    <span className="text-sm text-green-600 font-medium">💚 微信</span>
                   </div>
                   <div className="text-center">
-                    <div className="w-28 h-28 bg-gray-100 rounded-lg mx-auto mb-1 flex items-center justify-center">
+                    <div className="w-44 h-44 bg-white rounded-xl mx-auto mb-2 flex items-center justify-center border border-gray-100 p-2">
                       <img
                         src="/qr-alipay.png"
                         alt="支付宝收款码"
-                        className="w-full h-full object-contain rounded-lg"
+                        className="w-full h-full object-contain"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none'
                           ;(e.target as HTMLImageElement).parentElement!.innerHTML =
-                            '<span class="text-xs text-graphite">支付宝<br/>收款码</span>'
+                            '<span class="text-sm text-graphite">支付宝<br/>收款码</span>'
                         }}
                       />
                     </div>
-                    <span className="text-xs text-graphite">支付宝</span>
+                    <span className="text-sm text-blue-600 font-medium">💙 支付宝</span>
                   </div>
                 </div>
+                {/* Mobile tip — visible only on small screens */}
+                <p className="mt-3 text-xs text-graphite/70 md:hidden">
+                  💡 长按收款码可保存到相册，再用微信/支付宝「扫一扫」选择相册中的图片
+                </p>
+                <p className="mt-2 text-xs text-graphite/70 hidden md:block">
+                  💡 PC端？用手机打开此页面即可直接扫码付款
+                </p>
               </div>
 
               {/* Txn ref input */}
