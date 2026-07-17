@@ -5,12 +5,13 @@ compatibility_date = "2025-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "kaoyan-db"
-database_id = "local-dev-placeholder"  # Replace with real ID from `wrangler d1 create`
+database_id = "YOUR_D1_DATABASE_ID"
 
 [[kv_namespaces]]
 binding = "KV"
-id = "local-dev-placeholder"  # Replace with real ID from `wrangler kv:namespace create`
+id = "YOUR_KV_NAMESPACE_ID"
 
 [vars]
-CLAUDE_API_KEY = ""  # Fill in Cloudflare Dashboard or wrangler secret
 TAOBAO_PRODUCT_URL = "https://item.taobao.com/item.htm?id=YOUR_PRODUCT_ID"
+
+# Set secrets via: npx wrangler secret put CLAUDE_API_KEY
