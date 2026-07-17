@@ -15,6 +15,17 @@ export default function PreviewPage() {
 
   useEffect(() => {
     if (!id) return
+    // Use sessionStorage to prevent duplicate API calls
+    const cacheKey = `preview-${id}`
+    const cached = sessionStorage.getItem(cacheKey)
+    if (cached) {
+      try {
+        const data = JSON.parse(cached)
+        setPreview(data)
+        setLoading(false)
+        return
+      } catch { /* stale cache, continue fetching */ }
+    }
     api.getResult(id)
       .then(res => {
         if (res.status === 'processing') {
@@ -25,7 +36,9 @@ export default function PreviewPage() {
           navigate(`/result/${id}`, { replace: true })
           return
         }
-        setPreview(res.data as PreviewResult)
+        const data = res.data as PreviewResult
+        sessionStorage.setItem(cacheKey, JSON.stringify(data))
+        setPreview(data)
       })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
