@@ -12,6 +12,6 @@ binding = "KV"
 id = "d390c187c1e8437da849b7e199f25d98"
 
 [vars]
-TAOBAO_PRODUCT_URL = "https://item.taobao.com/item.htm?id=YOUR_PRODUCT_ID"
+TAOBAO_PRODUCT_URL = "https://e.tb.cn/h.8YfX8Od5KRhJeoy?tk=jVhVgILK963"
 
 # Set secrets via: npx wrangler secret put DASHSCOPE_API_KEY
