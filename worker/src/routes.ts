@@ -164,7 +164,7 @@ export async function handleSubmitPayment(c: Context) {
       return c.json({ success: true, autoApproved: false, message: '已提交，等待审核' })
     }
 
-    const { orderId, autoApproved } = await submitPayment(
+    const { orderId } = await submitPayment(
       db,
       body.evaluationId,
       body.txnRef,
@@ -174,8 +174,7 @@ export async function handleSubmitPayment(c: Context) {
     return c.json({
       success: true,
       orderId,
-      autoApproved,
-      message: autoApproved ? '支付验证通过，已解锁全部内容' : '已提交付款信息，等待管理员审核',
+      message: '已提交付款信息，等待管理员审核',
     })
   } catch (err: any) {
     console.error('Submit payment error:', err)

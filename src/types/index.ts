@@ -54,7 +54,6 @@ export interface ResultResponse {
 export interface SubmitPaymentResponse {
   success: boolean
   orderId: string
-  autoApproved: boolean
   message: string
 }
 

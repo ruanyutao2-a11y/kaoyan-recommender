@@ -55,33 +55,18 @@ export async function submitPayment(
   evaluationId: string,
   txnRef: string,
   deviceId: string
-): Promise<{ orderId: string; autoApproved: boolean }> {
+): Promise<{ orderId: string }> {
   const orderId = generateId()
-
-  const paidCount = await getPaidDeviceCount(db, deviceId)
-  const autoApproved = paidCount === 0
-  const status = autoApproved ? 'paid' : 'created'
 
   await db
     .prepare(
-      `INSERT INTO orders (id, evaluation_id, status, txn_ref, device_id, paid_at)
-       VALUES (?, ?, ?, ?, ?, ?)`
+      `INSERT INTO orders (id, evaluation_id, status, txn_ref, device_id)
+       VALUES (?, ?, 'created', ?, ?)`
     )
-    .bind(
-      orderId,
-      evaluationId,
-      status,
-      txnRef,
-      deviceId,
-      autoApproved ? new Date().toISOString() : null
-    )
+    .bind(orderId, evaluationId, txnRef, deviceId)
     .run()
 
-  if (autoApproved) {
-    await markEvaluationPaid(db, evaluationId)
-  }
-
-  return { orderId, autoApproved }
+  return { orderId }
 }
 
 export async function getPaidDeviceCount(db: D1Database, deviceId: string): Promise<number> {

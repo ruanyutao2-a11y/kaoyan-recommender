@@ -43,20 +43,9 @@ export default function Paywall({ evaluationId, lockedCount, onUnlocked }: Props
     try {
       const deviceId = getDeviceId()
       const result = await api.submitPayment(evaluationId, txnRef.trim(), deviceId)
-      if (result.autoApproved) {
-        setStep('auto_unlocked')
-        setMessage(result.message)
-        // Fetch full result and unlock
-        const fullResult = await api.getResult(evaluationId)
-        if (fullResult.data) {
-          onUnlocked(fullResult.data)
-        }
-      } else {
-        setStep('pending_review')
-        setMessage(result.message)
-        // Start polling for approval
-        startPolling()
-      }
+      setStep('pending_review')
+      setMessage(result.message)
+      startPolling()
     } catch (err: any) {
       setError(err.message || '提交失败')
     } finally {
