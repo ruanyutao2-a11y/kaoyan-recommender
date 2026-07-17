@@ -37,3 +37,15 @@ CREATE TABLE IF NOT EXISTS redeem_codes (
 CREATE INDEX IF NOT EXISTS idx_evaluations_status ON evaluations(status);
 CREATE INDEX IF NOT EXISTS idx_redeem_codes_code ON redeem_codes(code);
 CREATE INDEX IF NOT EXISTS idx_orders_evaluation ON orders(evaluation_id);
+
+-- Migration: payment redesign (2026-07-17)
+-- New columns for free-tier + manual review flow
+
+ALTER TABLE evaluations ADD COLUMN free_until TEXT;
+ALTER TABLE evaluations ADD COLUMN unlock_type TEXT DEFAULT 'free';
+
+ALTER TABLE orders ADD COLUMN txn_ref TEXT;
+ALTER TABLE orders ADD COLUMN device_id TEXT;
+ALTER TABLE orders ADD COLUMN reviewed_by TEXT;
+ALTER TABLE orders ADD COLUMN reviewed_at TEXT;
+ALTER TABLE orders ADD COLUMN notes TEXT;
