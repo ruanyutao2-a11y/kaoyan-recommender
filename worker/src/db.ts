@@ -6,10 +6,13 @@ export function generateId(): string {
 
 export async function createEvaluation(
   db: D1Database,
-  input: EvaluationInput
+  input: EvaluationInput,
+  isFirstTime: boolean
 ): Promise<string> {
   const id = generateId()
-  const freeUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+  const freeUntil = isFirstTime
+    ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    : null
   await db
     .prepare(
       `INSERT INTO evaluations (id, school, major, gpa, target_major, region, english_level, status, free_until, unlock_type)

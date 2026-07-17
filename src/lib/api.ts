@@ -26,9 +26,11 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const api = {
   evaluate(input: EvaluationInput): Promise<EvaluateResponse> {
+    // Pass device_id so the server knows if this is first-time or repeat
+    const deviceId = localStorage.getItem('kaoyan_device_id') || ''
     return request<EvaluateResponse>('/api/evaluate', {
       method: 'POST',
-      body: JSON.stringify(input),
+      body: JSON.stringify({ ...input, deviceId }),
     })
   },
 

@@ -43,7 +43,7 @@ export async function handleEvaluate(c: Context) {
     return c.json({ error: '请求过于频繁，请一小时后再试' }, 429)
   }
 
-  const body = await c.req.json<EvaluationInput>()
+  const body = await c.req.json<EvaluationInput & { deviceId?: string }>()
   if (!body.school || !body.major || !body.target_major) {
     return c.json({ error: '请填写本科院校、本科专业和目标专业' }, 400)
   }
@@ -51,8 +51,17 @@ export async function handleEvaluate(c: Context) {
   const db = c.env.DB as D1Database
   const apiKey = c.env.DASHSCOPE_API_KEY as string
 
+  // Check if this device has used the service before
+  const deviceId = body.deviceId || ''
+  const isFirstTime = deviceId
+    ? await getPaidDeviceCount(db, deviceId) === 0
+        && (await db.prepare(
+          "SELECT COUNT(*) as cnt FROM evaluations e JOIN orders o ON e.id = o.evaluation_id WHERE o.device_id = ?"
+        ).bind(deviceId).first() as any)?.cnt === 0
+    : true
+
   try {
-    const id = await createEvaluation(db, body)
+    const id = await createEvaluation(db, body, isFirstTime)
 
     // Use waitUntil for background processing (keeps Worker alive after response)
     c.executionCtx.waitUntil(
