@@ -6,7 +6,7 @@ import {
   RedeemResponse,
 } from '../types'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8787'
+const API_BASE = import.meta.env.PROD ? '' : ''
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
