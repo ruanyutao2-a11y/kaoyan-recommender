@@ -11,6 +11,7 @@ export default function ResultPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [result, setResult] = useState<EvaluationResult | null>(null)
+  const [isPaid, setIsPaid] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [pdfLoading, setPdfLoading] = useState(false)
@@ -26,6 +27,7 @@ export default function ResultPage() {
           return
         }
         setResult(res.data as EvaluationResult)
+          setIsPaid(res.isPaid)
       })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
@@ -77,7 +79,8 @@ export default function ResultPage() {
             <p className="text-graphite">{result.summary.overall_assessment}</p>
           </div>
 
-          {/* Export PDF button */}
+          {/* Export PDF button — only for paid users */}
+          {isPaid && (
           <div className="text-center mb-8 no-print">
             <button
               onClick={handleExportPDF}
@@ -93,6 +96,7 @@ export default function ResultPage() {
               <p className="text-vermilion text-xs mt-2">{pdfError}</p>
             )}
           </div>
+          )}
 
           {/* 上岸难度对比 — 内嵌条形图 */}
           <div className="mb-8 p-4 sm:p-6 bg-white rounded-xl border border-gray-100">

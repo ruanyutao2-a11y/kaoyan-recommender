@@ -149,7 +149,7 @@ export default function EvaluationForm({ onSubmit, isLoading }: Props) {
                    disabled:opacity-50 disabled:cursor-not-allowed
                    focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vermilion"
       >
-        {isLoading ? '分析中…' : '开始免费评估 →'}
+        {isLoading ? '分析中…' : '开始评估 →'}
       </button>
     </form>
   )

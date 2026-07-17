@@ -101,7 +101,13 @@ export async function generateRecommendations(
     jsonStr = jsonStr.replace(/^```json?\s*\n?/, '').replace(/\n?```\s*$/, '')
   }
 
-  const result: EvaluationResult = JSON.parse(jsonStr)
+  let result: EvaluationResult
+  try {
+    result = JSON.parse(jsonStr)
+  } catch {
+    console.error('Failed to parse LLM JSON response:', jsonStr.slice(0, 300))
+    throw new Error('AI 响应格式异常，请返回首页重新提交')
+  }
 
   // Ensure disclaimer is present
   if (!result.disclaimer) {

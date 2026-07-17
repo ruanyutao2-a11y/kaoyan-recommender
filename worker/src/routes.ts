@@ -159,9 +159,9 @@ export async function handleSubmitPayment(c: Context) {
     const existing = await getPendingOrderByEvaluation(db, body.evaluationId) as any
     if (existing) {
       if (existing.status === 'paid') {
-        return c.json({ success: true, autoApproved: true, message: '已完成支付' })
+        return c.json({ success: true, message: '已完成支付' })
       }
-      return c.json({ success: true, autoApproved: false, message: '已提交，等待审核' })
+      return c.json({ success: true, message: '已提交，等待审核' })
     }
 
     const { orderId } = await submitPayment(
