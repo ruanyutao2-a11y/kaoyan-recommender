@@ -2,8 +2,9 @@ import type {
   EvaluationInput,
   EvaluateResponse,
   ResultResponse,
-  OrderResponse,
-  RedeemResponse,
+  SubmitPaymentResponse,
+  PaymentStatusResponse,
+  AdminOrdersResponse,
 } from '../types'
 
 const API_BASE = ''
@@ -35,17 +36,35 @@ export const api = {
     return request<ResultResponse>(`/api/result/${id}`)
   },
 
-  createOrder(evaluationId: string): Promise<OrderResponse> {
-    return request<OrderResponse>('/api/order', {
+  submitPayment(evaluationId: string, txnRef: string, deviceId: string): Promise<SubmitPaymentResponse> {
+    return request<SubmitPaymentResponse>('/api/submit-payment', {
       method: 'POST',
-      body: JSON.stringify({ evaluationId }),
+      body: JSON.stringify({ evaluationId, txnRef, deviceId }),
     })
   },
 
-  redeem(code: string): Promise<RedeemResponse> {
-    return request<RedeemResponse>('/api/redeem', {
+  getPaymentStatus(evaluationId: string): Promise<PaymentStatusResponse> {
+    return request<PaymentStatusResponse>(`/api/payment-status/${evaluationId}`)
+  },
+
+  // Admin APIs — pass password via header
+  getAdminOrders(status: string, password: string): Promise<AdminOrdersResponse> {
+    return request<AdminOrdersResponse>(`/api/admin/orders?status=${status}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Admin-Password': password,
+      },
+    })
+  },
+
+  adminApprove(orderId: string, action: 'approve' | 'reject', password: string, notes?: string): Promise<{ success: boolean; evaluationId?: string }> {
+    return request<{ success: boolean; evaluationId?: string }>('/api/admin/approve', {
       method: 'POST',
-      body: JSON.stringify({ code }),
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Admin-Password': password,
+      },
+      body: JSON.stringify({ orderId, action, notes }),
     })
   },
 }
