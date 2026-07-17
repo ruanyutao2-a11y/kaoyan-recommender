@@ -3,9 +3,10 @@ import { cors } from 'hono/cors'
 import {
   handleEvaluate,
   handleGetResult,
-  handleCreateOrder,
-  handleRedeem,
-  handleTaobaoCallback,
+  handleSubmitPayment,
+  handleAdminOrders,
+  handleAdminApprove,
+  handleCheckPaymentStatus,
 } from './routes'
 
 const app = new Hono()
@@ -17,14 +18,15 @@ app.use('*', cors({
     'https://39cefbdb.kaoyan-recommender.pages.dev',
   ],
   allowMethods: ['GET', 'POST', 'OPTIONS'],
-  allowHeaders: ['Content-Type'],
+  allowHeaders: ['Content-Type', 'X-Admin-Password'],
 }))
 
 app.get('/api/health', (c) => c.json({ status: 'ok' }))
 app.post('/api/evaluate', handleEvaluate)
 app.get('/api/result/:id', handleGetResult)
-app.post('/api/order', handleCreateOrder)
-app.post('/api/redeem', handleRedeem)
-app.post('/api/taobao-callback', handleTaobaoCallback)
+app.post('/api/submit-payment', handleSubmitPayment)
+app.get('/api/payment-status/:evaluationId', handleCheckPaymentStatus)
+app.get('/api/admin/orders', handleAdminOrders)
+app.post('/api/admin/approve', handleAdminApprove)
 
 export default app
