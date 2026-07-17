@@ -1,4 +1,5 @@
-import { useState, FormEvent } from 'react'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 import type { EvaluationInput } from '../types'
 
 interface Props {
@@ -42,7 +43,7 @@ export default function EvaluationForm({ onSubmit, isLoading }: Props) {
   }
 
   function updateField(field: keyof EvaluationInput, value: string) {
-    setForm(prev => ({ ...prev, [field]: value }))
+    setForm((prev: EvaluationInput) => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }))
     }

@@ -5,11 +5,11 @@ compatibility_date = "2025-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "kaoyan-db"
-database_id = "YOUR_D1_DATABASE_ID"
+database_id = "e904b8c4-77ac-4217-9bbe-d7ee4b4c8fb6"
 
 [[kv_namespaces]]
 binding = "KV"
-id = "YOUR_KV_NAMESPACE_ID"
+id = "d390c187c1e8437da849b7e199f25d98"
 
 [vars]
 TAOBAO_PRODUCT_URL = "https://item.taobao.com/item.htm?id=YOUR_PRODUCT_ID"

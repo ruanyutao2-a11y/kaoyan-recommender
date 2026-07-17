@@ -6,7 +6,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 export default function EvaluatingPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const pollRef = useRef<ReturnType<typeof setInterval>>()
+  const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
   const [message, setMessage] = useState('正在分析你的背景信息...')
 
   useEffect(() => {
