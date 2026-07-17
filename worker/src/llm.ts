@@ -95,11 +95,23 @@ export async function generateRecommendations(
   // OpenAI-compatible format: choices[0].message.content
   const content = data.choices[0].message.content
 
-  // Parse JSON from response (handle possible markdown wrapping)
+  // Clean common LLM response noise before trying to parse
   let jsonStr = content.trim()
+  // Strip markdown code fences
   if (jsonStr.startsWith('```')) {
-    jsonStr = jsonStr.replace(/^```json?\s*\n?/, '').replace(/\n?```\s*$/, '')
+    jsonStr = jsonStr.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '')
   }
+  // If response starts with explanatory text, find the first '{'
+  const braceIdx = jsonStr.indexOf('{')
+  if (braceIdx > 0) {
+    jsonStr = jsonStr.slice(braceIdx)
+  }
+  // If response has trailing text after the last '}', cut it
+  const lastBrace = jsonStr.lastIndexOf('}')
+  if (lastBrace > 0 && lastBrace < jsonStr.length - 1) {
+    jsonStr = jsonStr.slice(0, lastBrace + 1)
+  }
+  jsonStr = jsonStr.trim()
 
   let result: EvaluationResult
   try {
