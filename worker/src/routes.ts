@@ -9,6 +9,7 @@ import {
   approveOrder,
   rejectOrder,
   getPendingOrderByEvaluation,
+  getPaidDeviceCount,
 } from './db'
 import { generateRecommendations } from './llm'
 
@@ -43,7 +44,12 @@ export async function handleEvaluate(c: Context) {
     return c.json({ error: '请求过于频繁，请一小时后再试' }, 429)
   }
 
-  const body = await c.req.json<EvaluationInput & { deviceId?: string }>()
+  let body: EvaluationInput & { deviceId?: string }
+  try {
+    body = await c.req.json<EvaluationInput & { deviceId?: string }>()
+  } catch {
+    return c.json({ error: '请求格式错误' }, 400)
+  }
   if (!body.school || !body.major || !body.target_major) {
     return c.json({ error: '请填写本科院校、本科专业和目标专业' }, 400)
   }
@@ -51,43 +57,28 @@ export async function handleEvaluate(c: Context) {
   const db = c.env.DB as D1Database
   const apiKey = c.env.DASHSCOPE_API_KEY as string
 
-  // Check if this device has used the service before
   const deviceId = body.deviceId || ''
-  const isFirstTime = deviceId
-    ? await getPaidDeviceCount(db, deviceId) === 0
-        && (await db.prepare(
-          "SELECT COUNT(*) as cnt FROM evaluations e JOIN orders o ON e.id = o.evaluation_id WHERE o.device_id = ?"
-        ).bind(deviceId).first() as any)?.cnt === 0
-    : true
+  const isFirstTime = deviceId ? (await getPaidDeviceCount(db, deviceId)) === 0 : true
+  const id = await createEvaluation(db, body, isFirstTime)
 
-  try {
-    const id = await createEvaluation(db, body, isFirstTime)
-
-    // Use waitUntil for background processing (keeps Worker alive after response)
-    c.executionCtx.waitUntil(
-      (async () => {
+  // Run LLM synchronously so we don't lose results to waitUntil timeouts
+  c.executionCtx.waitUntil(
+    (async () => {
+      try {
+        const { result, preview } = await generateRecommendations(body, apiKey)
+        await updateEvaluationResult(db, id, JSON.stringify(result), JSON.stringify(preview))
+      } catch (err) {
+        console.error('LLM evaluation failed:', err)
         try {
-          const { result, preview } = await generateRecommendations(body, apiKey)
-          await updateEvaluationResult(db, id, JSON.stringify(result), JSON.stringify(preview))
-        } catch (err) {
-          console.error('LLM evaluation failed:', err)
-          try {
-            await db
-              .prepare("UPDATE evaluations SET status = 'failed' WHERE id = ?")
-              .bind(id)
-              .run()
-          } catch (dbErr) {
-            console.error('Failed to update evaluation status:', dbErr)
-          }
+          await db.prepare("UPDATE evaluations SET status = 'failed' WHERE id = ?").bind(id).run()
+        } catch (dbErr) {
+          console.error('Failed to update evaluation status:', dbErr)
         }
-      })()
-    )
+      }
+    })()
+  )
 
-    return c.json({ evaluationId: id, status: 'processing' }, 202)
-  } catch (err: any) {
-    console.error('Evaluate error:', err)
-    return c.json({ error: '评估失败，请稍后重试' }, 500)
-  }
+  return c.json({ evaluationId: id, status: 'processing' }, 202)
 }
 
 export async function handleGetResult(c: Context) {
