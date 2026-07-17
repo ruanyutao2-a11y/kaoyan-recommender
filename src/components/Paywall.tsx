@@ -73,19 +73,18 @@ export default function Paywall({ evaluationId, lockedCount, onUnlocked }: Props
             </button>
           ) : (
             <div className="space-y-4">
-              {/* Taobao button */}
               <a
                 href={orderInfo.taobaoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block px-8 py-3 bg-orange-500 text-white font-medium rounded-lg
-                           hover:bg-orange-600 transition-colors text-lg"
+                className="inline-block px-6 py-2.5 bg-orange-500 text-white font-medium rounded-lg
+                           hover:bg-orange-600 transition-colors"
               >
                 前往淘宝付款 →
               </a>
 
               <p className="text-graphite text-xs">
-                前往淘宝付款后，输入兑换码即可解锁完整报告
+                付款完成后，输入兑换码即可解锁完整报告
               </p>
 
               <div className="bg-green-50 border border-green-200 rounded-lg p-3">
@@ -95,23 +94,22 @@ export default function Paywall({ evaluationId, lockedCount, onUnlocked }: Props
                 </p>
               </div>
 
-              <div className="relative">
+              <div>
                 <input
                   type="text"
-                  className="w-56 px-4 py-2.5 rounded-lg border border-gray-200 text-center font-mono text-lg
+                  className="w-52 px-3 py-2 rounded-lg border border-gray-200 text-center font-mono
                              tracking-widest uppercase bg-gray-50 focus:border-indigo focus:ring-1 focus:ring-indigo
-                             placeholder:text-gray-400 placeholder:tracking-normal placeholder:font-sans placeholder:text-sm"
+                             placeholder:font-sans placeholder:text-xs placeholder:tracking-normal"
                   placeholder="输入 12 位兑换码"
                   value={redeemCode}
                   onChange={e => setRedeemCode(e.target.value.toUpperCase())}
                   maxLength={12}
-                />
+                />{" "}
                 <button
                   onClick={handleRedeem}
                   disabled={isLoading || redeemCode.length < 12}
-                  className="ml-2 px-5 py-2.5 bg-indigo text-white text-sm font-medium rounded-lg
-                             hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors
-                             align-middle"
+                  className="px-4 py-2 bg-indigo text-white text-sm font-medium rounded-lg
+                             hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {isLoading ? '兑换中...' : '兑换'}
                 </button>

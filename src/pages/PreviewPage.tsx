@@ -100,13 +100,18 @@ export default function PreviewPage() {
                 />
               </div>
             ))}
+            {/* Gradient fade into CTA */}
+            <div className="h-32 bg-gradient-to-b from-transparent to-paper" />
           </div>
 
-          <Paywall
-            evaluationId={id!}
-            lockedCount={preview.locked_count}
-            onUnlocked={() => navigate(`/result/${id}`, { replace: true })}
-          />
+          {/* Centered CTA overlay */}
+          <div className="absolute bottom-8 left-0 right-0 flex justify-center z-10">
+            <Paywall
+              evaluationId={id!}
+              lockedCount={preview.locked_count}
+              onUnlocked={() => navigate(`/result/${id}`, { replace: true })}
+            />
+          </div>
         </div>
 
         <p className="text-xs text-graphite/60 text-center mt-8">
