@@ -85,8 +85,15 @@ export default function Paywall({ evaluationId, lockedCount, onUnlocked }: Props
               </a>
 
               <p className="text-graphite text-xs">
-                付款完成后，联系客服获取兑换码，然后在此输入兑换码解锁
+                前往淘宝付款后，输入兑换码即可解锁完整报告
               </p>
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <p className="text-green-800 text-xs mb-1">你的兑换码：</p>
+                <p className="font-mono text-xl tracking-widest text-green-900 font-bold select-all">
+                  {orderInfo.redeemCode}
+                </p>
+              </div>
 
               <div className="relative">
                 <input
