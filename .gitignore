@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Cloudflare Worker
+.wrangler
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
