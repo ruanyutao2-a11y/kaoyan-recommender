@@ -15,6 +15,9 @@ dist-ssr
 # Cloudflare Worker
 .wrangler
 
+# Superpowers temp dirs
+.superpowers/sdd/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
