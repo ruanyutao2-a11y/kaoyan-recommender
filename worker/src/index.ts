@@ -11,7 +11,11 @@ import {
 const app = new Hono()
 
 app.use('*', cors({
-  origin: '*',
+  origin: [
+    'http://localhost:5173',
+    'https://ee582540.kaoyan-recommender.pages.dev',
+    'https://39cefbdb.kaoyan-recommender.pages.dev',
+  ],
   allowMethods: ['GET', 'POST', 'OPTIONS'],
   allowHeaders: ['Content-Type'],
 }))
