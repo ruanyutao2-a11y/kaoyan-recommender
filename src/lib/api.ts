@@ -6,8 +6,6 @@ import type {
   RedeemResponse,
 } from '../types'
 
-// Use relative paths in production — /api/* is proxied by Pages Functions
-// to the Cloudflare Worker on the same edge network
 const API_BASE = ''
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
