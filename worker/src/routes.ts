@@ -54,6 +54,9 @@ export async function handleEvaluate(c: Context) {
     return c.json({ error: '请填写本科院校、本科专业和目标专业' }, 400)
   }
 
+  // Process LLM synchronously — worker waits for the API call to complete.
+  // Cloudflare Worker paid plan has 30s CPU limit; free plan 10ms.
+  // If your worker is on free plan, this will need to switch to a queue-based approach.
   const db = c.env.DB as D1Database
   const apiKey = c.env.DASHSCOPE_API_KEY as string
 
@@ -61,24 +64,15 @@ export async function handleEvaluate(c: Context) {
   const isFirstTime = deviceId ? (await getPaidDeviceCount(db, deviceId)) === 0 : true
   const id = await createEvaluation(db, body, isFirstTime)
 
-  // Run LLM synchronously so we don't lose results to waitUntil timeouts
-  c.executionCtx.waitUntil(
-    (async () => {
-      try {
-        const { result, preview } = await generateRecommendations(body, apiKey)
-        await updateEvaluationResult(db, id, JSON.stringify(result), JSON.stringify(preview))
-      } catch (err) {
-        console.error('LLM evaluation failed:', err)
-        try {
-          await db.prepare("UPDATE evaluations SET status = 'failed' WHERE id = ?").bind(id).run()
-        } catch (dbErr) {
-          console.error('Failed to update evaluation status:', dbErr)
-        }
-      }
-    })()
-  )
-
-  return c.json({ evaluationId: id, status: 'processing' }, 202)
+  try {
+    const { result, preview } = await generateRecommendations(body, apiKey)
+    await updateEvaluationResult(db, id, JSON.stringify(result), JSON.stringify(preview))
+    return c.json({ evaluationId: id, status: 'completed', isFree: isFirstTime, data: result })
+  } catch (err) {
+    console.error('LLM evaluation failed:', err)
+    await db.prepare("UPDATE evaluations SET status = 'failed' WHERE id = ?").bind(id).run()
+    return c.json({ error: 'AI 评估失败，请返回首页重新提交' }, 500)
+  }
 }
 
 export async function handleGetResult(c: Context) {

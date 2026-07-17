@@ -14,7 +14,16 @@ export default function HomePage() {
     setError('')
     try {
       const result = await api.evaluate(input)
-      navigate(`/evaluating/${result.evaluationId}`)
+      // Check if the API returned a final result synchronously (completed)
+      if ((result as any).data) {
+        // API returned the full result directly — go to result page
+        const evalId = result.evaluationId
+        // Store in sessionStorage so PreviewPage/ResultPage can use it
+        sessionStorage.setItem(`preview-${evalId}`, JSON.stringify((result as any).data))
+        navigate(`/result/${evalId}`, { replace: true })
+      } else {
+        navigate(`/evaluating/${result.evaluationId}`)
+      }
     } catch (err: any) {
       setError(err.message || '提交失败，请稍后重试')
       setIsLoading(false)

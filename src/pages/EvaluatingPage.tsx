@@ -7,6 +7,7 @@ export default function EvaluatingPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
+  const safetyRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [message, setMessage] = useState('正在分析你的背景信息...')
 
   useEffect(() => {
@@ -36,14 +37,23 @@ export default function EvaluatingPage() {
           clearInterval(msgTimer)
           navigate('/', { replace: true })
         }
+        // If still 'processing', keep polling (also handles error responses)
       } catch {
-        // Keep polling on error
+        // Keep polling on error — network error or 500, retry
       }
-    }, 2000)
+    }, 3000)
+
+    // Safety timeout: if still processing after 120s, redirect home
+    safetyRef.current = setTimeout(() => {
+      clearInterval(pollRef.current)
+      clearInterval(msgTimer)
+      navigate('/', { replace: true })
+    }, 120000)
 
     return () => {
       clearInterval(pollRef.current)
       clearInterval(msgTimer)
+      if (safetyRef.current) clearTimeout(safetyRef.current)
     }
   }, [id, navigate])
 

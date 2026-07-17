@@ -84,7 +84,7 @@ export async function generateRecommendations(
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'qwen-max',
+      model: 'qwen-plus',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: userPrompt },
