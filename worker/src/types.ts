@@ -44,8 +44,12 @@ export interface OrderRecord {
   status: 'created' | 'paid' | 'cancelled'
   amount: number
   taobao_url: string
+  txn_ref: string | null
+  device_id: string | null
   created_at: string
   paid_at: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
 }
 
 export interface RedeemCodeRecord {
@@ -54,4 +58,20 @@ export interface RedeemCodeRecord {
   order_id: string
   used_at: string | null
   created_at: string
+}
+
+export interface PaymentSubmission {
+  evaluationId: string
+  txnRef: string
+  deviceId: string
+}
+
+export interface AdminOrdersQuery {
+  status?: 'created' | 'paid' | 'cancelled' | 'all'
+}
+
+export interface AdminApproveRequest {
+  orderId: string
+  action: 'approve' | 'reject'
+  notes?: string
 }
