@@ -69,7 +69,7 @@ export default function Paywall({ evaluationId, lockedCount, onUnlocked }: Props
                          hover:bg-red-700 active:scale-[0.98] transition-all
                          disabled:opacity-50 disabled:cursor-not-allowed text-lg"
             >
-              {isLoading ? '处理中...' : '🔓 9.9 元解锁完整结果'}
+              {isLoading ? '处理中...' : ' 🔓 9.9 元解锁全部院校'}
             </button>
           ) : (
             <div className="space-y-4">
