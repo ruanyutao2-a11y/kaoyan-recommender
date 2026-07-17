@@ -13,7 +13,7 @@ const app = new Hono()
 app.use('*', cors({
   origin: [
     'http://localhost:5173',
-    'https://f2997311.kaoyan-recommender.pages.dev',
+    'https://d0678593.kaoyan-recommender.pages.dev',
   ],
   allowMethods: ['GET', 'POST', 'OPTIONS'],
   allowHeaders: ['Content-Type'],

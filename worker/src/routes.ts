@@ -42,9 +42,7 @@ export async function handleEvaluate(c: Context) {
   try {
     const id = await createEvaluation(db, body)
 
-    // Fire and forget? No, we need to wait for result.
-    // But we can use ctx.waitUntil for background processing.
-    // For MVP, we'll process synchronously since Claude is fast.
+    // Use waitUntil for background processing (keeps Worker alive after response)
     c.executionCtx.waitUntil(
       (async () => {
         try {
@@ -52,10 +50,14 @@ export async function handleEvaluate(c: Context) {
           await updateEvaluationResult(db, id, JSON.stringify(result), JSON.stringify(preview))
         } catch (err) {
           console.error('LLM evaluation failed:', err)
-          await db
-            .prepare("UPDATE evaluations SET status = 'failed' WHERE id = ?")
-            .bind(id)
-            .run()
+          try {
+            await db
+              .prepare("UPDATE evaluations SET status = 'failed' WHERE id = ?")
+              .bind(id)
+              .run()
+          } catch (dbErr) {
+            console.error('Failed to update evaluation status:', dbErr)
+          }
         }
       })()
     )
@@ -84,7 +86,7 @@ export async function handleGetResult(c: Context) {
   }
 
   if (evaluation.status === 'failed') {
-    return c.json({ error: '评估失败，请重新提交' }, 500)
+    return c.json({ error: 'AI 评估失败，请返回首页重新提交' }, 500)
   }
 
   const result = JSON.parse(evaluation.result_json || '{}')
@@ -159,14 +161,7 @@ export async function handleRedeem(c: Context) {
 }
 
 export async function handleTaobaoCallback(c: Context) {
-  // Taobao Open Platform webhook endpoint
-  // Receives payment notification from Taobao when user pays
   const body = await c.req.text()
   console.log('Taobao callback received:', body)
-
-  // TODO: Verify Taobao signature and extract order info
-  // For MVP, this is a placeholder that logs the callback
-  // Manual redeem code entry serves as fallback
-
   return c.json({ success: true })
 }
