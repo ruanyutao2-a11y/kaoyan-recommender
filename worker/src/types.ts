@@ -16,6 +16,10 @@ export interface SchoolRecommendation {
   exam_subjects: string[]
   estimate_score: string
   notes: string
+  /** 对本科院校的歧视程度: 低/中/高 */
+  discrimination: '低' | '中' | '高'
+  /** 上岸难度: 极难/较难/中等/较易 */
+  difficulty: "极难" | "较难" | "中等" | "较易"
 }
 
 export interface EvaluationResult {

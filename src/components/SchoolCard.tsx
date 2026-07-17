@@ -1,5 +1,4 @@
 import type { SchoolRecommendation } from '../types'
-import StampSeal from './StampSeal'
 
 interface Props {
   school: SchoolRecommendation
@@ -13,7 +12,20 @@ const TIER_COLORS: Record<string, { bg: string; badge: string }> = {
   '保底': { bg: 'bg-green-50', badge: 'bg-green-100 text-green-700' },
 }
 
-export default function SchoolCard({ school, isLocked = false, index = 0 }: Props) {
+const DISCRIMINATION_COLORS: Record<string, string> = {
+  '低': 'bg-green-50 text-green-700',
+  '中': 'bg-yellow-50 text-yellow-700',
+  '高': 'bg-red-50 text-red-700',
+}
+
+const DIFFICULTY_COLORS: Record<string, string> = {
+  '极难': 'bg-red-100 text-red-800',
+  '较难': 'bg-orange-100 text-orange-800',
+  '中等': 'bg-yellow-100 text-yellow-800',
+  '较易': 'bg-green-100 text-green-800',
+}
+
+export default function SchoolCard({ school, isLocked = false }: Props) {
   const colors = TIER_COLORS[school.tier] || TIER_COLORS['稳妥']
 
   if (isLocked) {
@@ -36,8 +48,6 @@ export default function SchoolCard({ school, isLocked = false, index = 0 }: Prop
 
   return (
     <div className={`relative rounded-xl p-6 ${colors.bg} border border-gray-100 hover:shadow-md transition-shadow`}>
-      <StampSeal tier={school.tier} delay={index * 150} />
-
       <div className="flex items-center justify-between mb-3 pr-8">
         <h3 className="font-display text-xl text-ink">{school.name}</h3>
         <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${colors.badge}`}>
@@ -45,7 +55,8 @@ export default function SchoolCard({ school, isLocked = false, index = 0 }: Prop
         </span>
       </div>
 
-      <div className="flex items-center gap-2 mb-4">
+      {/* Match score */}
+      <div className="flex items-center gap-2 mb-3">
         <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
             className="h-full bg-indigo rounded-full transition-all duration-1000"
@@ -55,21 +66,32 @@ export default function SchoolCard({ school, isLocked = false, index = 0 }: Prop
         <span className="font-mono text-sm text-indigo font-medium">{school.match_score}分</span>
       </div>
 
+      {/* Discrimination + Difficulty badges */}
+      <div className="flex flex-wrap gap-2 mb-3">
+        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${DISCRIMINATION_COLORS[school.discrimination] || 'bg-gray-100 text-gray-600'}`}>
+          本科歧视：{school.discrimination}
+        </span>
+        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${DIFFICULTY_COLORS[school.difficulty] || 'bg-gray-100 text-gray-600'}`}>
+          上岸难度：{school.difficulty}
+        </span>
+      </div>
+
+      {/* Write PDF via hidden HTML + print */}
       <p className="text-sm text-ink/80 mb-4 leading-relaxed">{school.reason}</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
         <div>
-          <span className="text-graphite text-xs">⚠ 风险提示</span>
+          <span className="text-graphite text-xs">warning 风险提示</span>
           <p className="text-ink/70 mt-0.5">{school.risk_warning}</p>
         </div>
         <div>
-          <span className="text-graphite text-xs">📚 考试科目</span>
+          <span className="text-graphite text-xs">book 考试科目</span>
           <p className="text-ink/70 mt-0.5">{school.exam_subjects.join('、')}</p>
         </div>
       </div>
 
       <div className="mt-3 flex items-baseline gap-2">
-        <span className="text-graphite text-xs">📊 预估分数线</span>
+        <span className="text-graphite text-xs">line-chart 预估分数线</span>
         <span className="font-mono text-sm text-ink font-medium">{school.estimate_score}</span>
       </div>
 

@@ -16,6 +16,8 @@ export interface SchoolRecommendation {
   exam_subjects: string[]
   estimate_score: string
   notes: string
+  discrimination: '低' | '中' | '高'
+  difficulty: "极难" | "较难" | "中等" | "较易"
 }
 
 export interface EvaluationResult {

@@ -17,6 +17,8 @@ const SYSTEM_PROMPT = `你是一位资深考研择校顾问。你拥有中国所
 5. 建议关注的考试科目（2-4门）
 6. 预估分数线参考
 7. 补充说明
+8. 本科歧视程度：低/中/高（该校是否对考研学生本科出身有明显歧视）
+9. 上岸难度：极难/较难/中等/较易（基于报录比、分数线、复试淘汰率综合评估）
 
 最后给出整体评估总结（100字以内）。
 
@@ -50,7 +52,9 @@ export function buildUserPrompt(input: EvaluationInput): string {
       "risk_warning": "风险提示",
       "exam_subjects": ["科目1", "科目2", "科目3"],
       "estimate_score": "预估分数线",
-      "notes": "补充说明"
+      "notes": "补充说明",
+      "discrimination": "低",
+      "difficulty": "较难"
     }
   ],
   "disclaimer": "AI 生成，仅供参考。具体招生信息请以各校研究生院官网发布为准。"
