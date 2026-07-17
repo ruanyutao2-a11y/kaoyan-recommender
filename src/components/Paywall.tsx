@@ -55,10 +55,10 @@ export default function Paywall({ evaluationId, lockedCount, onUnlocked }: Props
             ))}
           </div>
           <p className="text-ink font-medium text-lg mb-2">
-            还有 {lockedCount} 所院校推荐待解锁
+            剩余 {lockedCount} 所院校推荐待解锁
           </p>
           <p className="text-graphite text-sm mb-6">
-            仅需 9.9 元，解锁全部冲/稳/保择校方案
+            解锁全部冲/稳/保择校方案仅需 9.9 元
           </p>
 
           {!orderInfo ? (

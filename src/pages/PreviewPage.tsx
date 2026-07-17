@@ -89,8 +89,8 @@ export default function PreviewPage() {
           <SchoolCard school={preview.preview_school} index={0} />
         </div>
 
-        {/* Locked schools placeholder + paywall */}
-        <div className="relative">
+        {/* Locked schools — above the paywall, but transparent and blurred */}
+        <div className="opacity-60 blur-[2px] select-none pointer-events-none">
           {[...Array(preview.locked_count)].map((_, i) => (
             <div key={i} className="mb-4">
               <SchoolCard
@@ -99,13 +99,13 @@ export default function PreviewPage() {
               />
             </div>
           ))}
-
-          <Paywall
-            evaluationId={id!}
-            lockedCount={preview.locked_count}
-            onUnlocked={() => navigate(`/result/${id}`, { replace: true })}
-          />
         </div>
+
+        <Paywall
+          evaluationId={id!}
+          lockedCount={preview.locked_count}
+          onUnlocked={() => navigate(`/result/${id}`, { replace: true })}
+        />
 
         <p className="text-xs text-graphite/60 text-center mt-8">
           AI 生成，仅供参考。具体招生信息请以各校研究生院官网发布为准。
