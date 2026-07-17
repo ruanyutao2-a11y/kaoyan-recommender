@@ -9,7 +9,6 @@ interface Props {
 }
 
 export default function Paywall({ evaluationId, lockedCount, onUnlocked }: Props) {
-  const [showRedeem, setShowRedeem] = useState(false)
   const [redeemCode, setRedeemCode] = useState('')
   const [orderInfo, setOrderInfo] = useState<OrderResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -85,7 +84,15 @@ export default function Paywall({ evaluationId, lockedCount, onUnlocked }: Props
                 前往淘宝付款 →
               </a>
 
-              {/* Redeem section — shown after clicking unlock */}
+              {/* Redeem code display */}
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-green-800 text-xs mb-2">你的兑换码（付款后可使用）：</p>
+                <p className="font-mono text-lg tracking-widest text-green-900 font-bold select-all">
+                  {orderInfo.redeemCode}
+                </p>
+              </div>
+
+              {/* Redeem section */}
               <div>
                 <p className="text-graphite text-xs mb-2">
                   付款完成后，在此输入兑换码解锁
@@ -110,13 +117,6 @@ export default function Paywall({ evaluationId, lockedCount, onUnlocked }: Props
                   </button>
                 </div>
               </div>
-
-              <button
-                onClick={() => setShowRedeem(!showRedeem)}
-                className="text-sm text-indigo hover:text-indigo/80 underline underline-offset-2"
-              >
-                {showRedeem ? '收起' : '已有兑换码？'}
-              </button>
             </div>
           )}
 
