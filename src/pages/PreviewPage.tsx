@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
-import { PreviewResult } from '../types'
+import type { PreviewResult } from '../types'
 import SchoolCard from '../components/SchoolCard'
 import Paywall from '../components/Paywall'
 import LoadingSpinner from '../components/LoadingSpinner'

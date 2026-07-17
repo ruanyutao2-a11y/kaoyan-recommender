@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import EvaluationForm from '../components/EvaluationForm'
-import { EvaluationInput } from '../types'
+import type { EvaluationInput } from '../types'
 import { api } from '../lib/api'
 import { useState } from 'react'
 

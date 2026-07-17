@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react'
-import { EvaluationInput } from '../types'
+import type { EvaluationInput } from '../types'
 
 interface Props {
   onSubmit: (input: EvaluationInput) => void

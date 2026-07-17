@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { OrderResponse } from '../types'
+import type { OrderResponse } from '../types'
 import { api } from '../lib/api'
 
 interface Props {

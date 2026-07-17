@@ -1,4 +1,4 @@
-import { SchoolRecommendation } from '../types'
+import type { SchoolRecommendation } from '../types'
 import StampSeal from './StampSeal'
 
 interface Props {
