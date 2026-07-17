@@ -10,6 +10,11 @@ export async function onRequest(context) {
   // Clone the request with only the essential headers
   const headers = new Headers();
   headers.set('Content-Type', request.headers.get('Content-Type') || 'application/json');
+  // Forward admin auth header for /api/admin/* routes
+  const adminPassword = request.headers.get('X-Admin-Password');
+  if (adminPassword) {
+    headers.set('X-Admin-Password', adminPassword);
+  }
 
   const body = request.method !== 'GET' && request.method !== 'HEAD'
     ? await request.clone().text()
