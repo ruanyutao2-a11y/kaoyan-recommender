@@ -15,7 +15,6 @@ export default function PreviewPage() {
 
   useEffect(() => {
     if (!id) return
-    // Use sessionStorage to prevent duplicate API calls
     const cacheKey = `preview-${id}`
     const cached = sessionStorage.getItem(cacheKey)
     if (cached) {
@@ -36,6 +35,11 @@ export default function PreviewPage() {
           navigate(`/result/${id}`, { replace: true })
           return
         }
+        // Free period still active → redirect to full result
+        if (res.isFree) {
+          navigate(`/result/${id}`, { replace: true })
+          return
+        }
         const data = res.data as PreviewResult
         sessionStorage.setItem(cacheKey, JSON.stringify(data))
         setPreview(data)
@@ -43,6 +47,11 @@ export default function PreviewPage() {
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
   }, [id, navigate])
+
+  // Handle unlock from Paywall → navigate to full result
+  function handleUnlocked(_result: any) {
+    navigate(`/result/${id}`, { replace: true })
+  }
 
   if (loading) return <LoadingSpinner message="加载结果中..." />
   if (error) {
@@ -100,16 +109,14 @@ export default function PreviewPage() {
                 />
               </div>
             ))}
-            {/* Gradient fade into CTA */}
             <div className="h-32 bg-gradient-to-b from-transparent to-paper" />
           </div>
 
-          {/* Centered CTA overlay */}
           <div className="absolute bottom-8 left-0 right-0 flex justify-center z-10">
             <Paywall
               evaluationId={id!}
               lockedCount={preview.locked_count}
-              onUnlocked={() => navigate(`/result/${id}`, { replace: true })}
+              onUnlocked={handleUnlocked}
             />
           </div>
         </div>
