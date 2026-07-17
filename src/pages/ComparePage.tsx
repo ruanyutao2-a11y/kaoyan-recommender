@@ -26,7 +26,7 @@ export default function ComparePage() {
     if (!id) return
     api.getResult(id)
       .then(res => {
-        if (!res.isPaid) {
+        if (!res.isPaid && !res.isFree) {
           navigate(`/result/${id}/preview`, { replace: true })
           return
         }
