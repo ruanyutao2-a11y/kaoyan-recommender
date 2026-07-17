@@ -129,6 +129,12 @@ export async function generateRecommendations(
     throw new Error('AI 响应格式异常，请返回首页重新提交')
   }
 
+  // Validate that recommendations exist and are non-empty
+  if (!result.recommendations || result.recommendations.length === 0) {
+    console.error('LLM returned empty recommendations:', jsonStr.slice(0, 300))
+    throw new Error('AI 未能生成有效推荐，请返回首页重新提交')
+  }
+
   // Ensure disclaimer is present
   if (!result.disclaimer) {
     result.disclaimer = 'AI 生成，仅供参考。具体招生信息请以各校研究生院官网发布为准。'
