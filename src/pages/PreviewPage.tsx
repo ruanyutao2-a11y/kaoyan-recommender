@@ -71,7 +71,7 @@ export default function PreviewPage() {
         {/* Free preview school */}
         <div className="mb-4">
           <p className="text-sm text-graphite mb-3">
-            🎁 免费预览（1/{preview.summary.total_schools}）
+            🎁 免费预览（1/{preview.summary.total_schools} 所院校）
           </p>
           <SchoolCard school={preview.preview_school} index={0} />
         </div>
