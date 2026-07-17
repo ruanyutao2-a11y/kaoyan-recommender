@@ -6,7 +6,9 @@ import type {
   RedeemResponse,
 } from '../types'
 
-const API_BASE = import.meta.env.PROD ? '' : ''
+const API_BASE = import.meta.env.PROD
+  ? 'https://kaoyan-api.ruanyutao2.workers.dev'
+  : ''
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
