@@ -110,8 +110,23 @@ export async function handleGetResult(c: Context) {
     return c.json({ error: 'AI 评估失败，请返回首页重新提交' }, 500)
   }
 
-  const result = JSON.parse(evaluation.result_json || '{}')
-  const preview = JSON.parse(evaluation.preview_json || '{}')
+  let result: any = {}
+  let preview: any = {}
+  try {
+    result = JSON.parse(evaluation.result_json || '{}')
+  } catch {
+    console.error('Corrupt result_json for evaluation:', id)
+  }
+  try {
+    preview = JSON.parse(evaluation.preview_json || '{}')
+  } catch {
+    console.error('Corrupt preview_json for evaluation:', id)
+  }
+
+  // If result_json was corrupt (e.g. stored LLM error text), treat as failed
+  if (evaluation.status === 'completed' && !result.recommendations && !preview.preview_school) {
+    return c.json({ error: 'AI 评估失败，请返回首页重新提交' }, 500)
+  }
 
   // Already paid → return full result
   if (evaluation.is_paid) {
