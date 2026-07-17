@@ -84,7 +84,7 @@ export async function generateRecommendations(
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'qwen-max',
+      model: 'qwen-plus',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: userPrompt },
@@ -100,7 +100,6 @@ export async function generateRecommendations(
   }
 
   const data = await response.json() as any
-  // OpenAI-compatible format: choices[0].message.content
   const content = data.choices[0].message.content
 
   // Clean common LLM response noise before trying to parse
@@ -129,22 +128,22 @@ export async function generateRecommendations(
     throw new Error('AI 响应格式异常，请返回首页重新提交')
   }
 
-  // Validate that recommendations exist and are non-empty
-  if (!result.recommendations || result.recommendations.length === 0) {
-    console.error('LLM returned empty recommendations:', jsonStr.slice(0, 300))
-    throw new Error('AI 未能生成有效推荐，请返回首页重新提交')
+  // Validate minimum quality: at least 6 schools with real data
+  const validSchools = (result.recommendations || []).filter(s => s.name && s.name.length > 1)
+  if (validSchools.length < 5) {
+    console.error('LLM returned insufficient schools:', validSchools.length)
+    throw new Error('AI 未能生成足够推荐，请返回首页重新提交')
   }
+  result.recommendations = validSchools
 
-  // Ensure disclaimer is present
   if (!result.disclaimer) {
     result.disclaimer = 'AI 生成，仅供参考。具体招生信息请以各校研究生院官网发布为准。'
   }
 
-  // Build preview: summary + first school only
   const preview: PreviewResult = {
     summary: {
-      total_schools: result.summary.total_schools,
-      tier_counts: result.summary.tier_counts,
+      total_schools: result.summary.total_schools || result.recommendations.length,
+      tier_counts: result.summary.tier_counts || { '冲刺': 3, '稳妥': 3, '保底': 3 },
     },
     preview_school: result.recommendations[0],
     locked_count: result.recommendations.length - 1,

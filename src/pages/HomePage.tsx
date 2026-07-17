@@ -31,10 +31,10 @@ export default function HomePage() {
       {/* Hero */}
       <section className="pt-16 pb-10 px-4 text-center">
         <h1 className="font-display text-4xl sm:text-5xl text-ink font-bold mb-3 tracking-tight">
-          免费考研择校推荐
+          考研择校推荐
         </h1>
         <p className="text-graphite text-lg sm:text-xl max-w-md mx-auto">
-          AI 个性化择校分析，免费获取冲/稳/保三梯度推荐方案
+          AI 个性化择校分析，获取冲/稳/保三梯度推荐方案
         </p>
       </section>
 
