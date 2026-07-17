@@ -1,16 +1,7 @@
-import { EvaluationInput, SchoolRecommendation, PreviewResult } from './types'
+import { EvaluationInput } from './types'
 
 export function generateId(): string {
   return crypto.randomUUID()
-}
-
-export function generateRedeemCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  let code = ''
-  for (let i = 0; i < 12; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)]
-  }
-  return code
 }
 
 export async function createEvaluation(
@@ -18,12 +9,13 @@ export async function createEvaluation(
   input: EvaluationInput
 ): Promise<string> {
   const id = generateId()
+  const freeUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
   await db
     .prepare(
-      `INSERT INTO evaluations (id, school, major, gpa, target_major, region, english_level, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'processing')`
+      `INSERT INTO evaluations (id, school, major, gpa, target_major, region, english_level, status, free_until, unlock_type)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'processing', ?, 'free')`
     )
-    .bind(id, input.school, input.major, input.estimated_score || null, input.target_major, input.region || null, input.english_level || null)
+    .bind(id, input.school, input.major, input.estimated_score || null, input.target_major, input.region || null, input.english_level || null, freeUntil)
     .run()
   return id
 }
@@ -48,85 +40,121 @@ export async function getEvaluation(db: D1Database, id: string) {
 
 export async function markEvaluationPaid(db: D1Database, id: string): Promise<void> {
   await db
-    .prepare(`UPDATE evaluations SET is_paid = 1 WHERE id = ?`)
+    .prepare(`UPDATE evaluations SET is_paid = 1, unlock_type = 'paid', free_until = NULL WHERE id = ?`)
     .bind(id)
     .run()
 }
 
-export async function createOrder(
+// ---- Payment submission (replaces old createOrder + redeem flow) ----
+
+export async function submitPayment(
   db: D1Database,
   evaluationId: string,
-  taobaoUrl: string
-): Promise<{ orderId: string; redeemCode: string }> {
+  txnRef: string,
+  deviceId: string
+): Promise<{ orderId: string; autoApproved: boolean }> {
   const orderId = generateId()
-  const redeemCode = generateRedeemCode()
+
+  const paidCount = await getPaidDeviceCount(db, deviceId)
+  const autoApproved = paidCount === 0
+  const status = autoApproved ? 'paid' : 'created'
 
   await db
     .prepare(
-      `INSERT INTO orders (id, evaluation_id, status, taobao_url) VALUES (?, ?, 'created', ?)`
+      `INSERT INTO orders (id, evaluation_id, status, txn_ref, device_id, paid_at)
+       VALUES (?, ?, ?, ?, ?, ?)`
     )
-    .bind(orderId, evaluationId, taobaoUrl)
+    .bind(
+      orderId,
+      evaluationId,
+      status,
+      txnRef,
+      deviceId,
+      autoApproved ? new Date().toISOString() : null
+    )
     .run()
 
-  const codeId = generateId()
-  await db
-    .prepare(
-      `INSERT INTO redeem_codes (id, code, order_id) VALUES (?, ?, ?)`
-    )
-    .bind(codeId, redeemCode, orderId)
-    .run()
+  if (autoApproved) {
+    await markEvaluationPaid(db, evaluationId)
+  }
 
-  return { orderId, redeemCode }
+  return { orderId, autoApproved }
 }
 
-export async function validateRedeemCode(
-  db: D1Database,
-  code: string
-): Promise<{ valid: boolean; evaluationId?: string; message: string }> {
-  const record = await db
-    .prepare('SELECT * FROM redeem_codes WHERE code = ?')
-    .bind(code.toUpperCase())
+export async function getPaidDeviceCount(db: D1Database, deviceId: string): Promise<number> {
+  if (!deviceId) return 0
+  const result = await db
+    .prepare("SELECT COUNT(*) as cnt FROM orders WHERE device_id = ? AND status = 'paid'")
+    .bind(deviceId)
     .first()
+  return (result as any)?.cnt || 0
+}
 
-  if (!record) {
-    return { valid: false, message: '兑换码无效' }
-  }
-  // Type assertion for D1 result
-  const redeemRecord = record as any
-  if (redeemRecord.used_at) {
-    return { valid: false, message: '此兑换码已被使用' }
-  }
+// ---- Admin functions ----
 
-  // Mark as used
+export async function getOrdersForReview(
+  db: D1Database,
+  statusFilter: string = 'created'
+) {
+  if (statusFilter === 'all') {
+    return db
+      .prepare("SELECT * FROM orders ORDER BY created_at DESC LIMIT 100")
+      .all()
+  }
+  return db
+    .prepare("SELECT * FROM orders WHERE status = ? ORDER BY created_at DESC LIMIT 100")
+    .bind(statusFilter)
+    .all()
+}
+
+export async function approveOrder(
+  db: D1Database,
+  orderId: string,
+  reviewedBy: string
+): Promise<{ evaluationId: string }> {
+  const now = new Date().toISOString()
   await db
-    .prepare('UPDATE redeem_codes SET used_at = datetime("now") WHERE code = ?')
-    .bind(code.toUpperCase())
+    .prepare(
+      `UPDATE orders SET status = 'paid', paid_at = ?, reviewed_by = ?, reviewed_at = ? WHERE id = ?`
+    )
+    .bind(now, reviewedBy, now, orderId)
     .run()
 
-  // Get associated order and mark as paid
   const order = await db
-    .prepare('SELECT * FROM orders WHERE id = ?')
-    .bind(redeemRecord.order_id)
+    .prepare('SELECT evaluation_id FROM orders WHERE id = ?')
+    .bind(orderId)
     .first() as any
 
   if (order) {
-    await db
-      .prepare('UPDATE orders SET status = "paid", paid_at = datetime("now") WHERE id = ?')
-      .bind(order.id)
-      .run()
     await markEvaluationPaid(db, order.evaluation_id)
   }
 
-  return {
-    valid: true,
-    evaluationId: order?.evaluation_id,
-    message: '兑换成功',
-  }
+  return { evaluationId: order?.evaluation_id }
 }
 
-export async function getOrderByEvaluationId(db: D1Database, evaluationId: string) {
+export async function rejectOrder(
+  db: D1Database,
+  orderId: string,
+  reviewedBy: string,
+  notes?: string
+): Promise<void> {
+  const now = new Date().toISOString()
+  await db
+    .prepare(
+      `UPDATE orders SET status = 'cancelled', reviewed_by = ?, reviewed_at = ?, notes = ? WHERE id = ?`
+    )
+    .bind(reviewedBy, now, notes || null, orderId)
+    .run()
+}
+
+export async function getPendingOrderByEvaluation(
+  db: D1Database,
+  evaluationId: string
+) {
   return db
-    .prepare('SELECT * FROM orders WHERE evaluation_id = ? ORDER BY created_at DESC LIMIT 1')
+    .prepare(
+      "SELECT * FROM orders WHERE evaluation_id = ? AND (status = 'created' OR status = 'paid') ORDER BY created_at DESC LIMIT 1"
+    )
     .bind(evaluationId)
     .first()
 }
