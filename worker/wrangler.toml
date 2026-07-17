@@ -1,0 +1,16 @@
+name = "kaoyan-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "kaoyan-db"
+database_id = "local-dev-placeholder"  # Replace with real ID from `wrangler d1 create`
+
+[[kv_namespaces]]
+binding = "KV"
+id = "local-dev-placeholder"  # Replace with real ID from `wrangler kv:namespace create`
+
+[vars]
+CLAUDE_API_KEY = ""  # Fill in Cloudflare Dashboard or wrangler secret
+TAOBAO_PRODUCT_URL = "https://item.taobao.com/item.htm?id=YOUR_PRODUCT_ID"
