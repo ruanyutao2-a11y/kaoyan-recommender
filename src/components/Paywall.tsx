@@ -58,7 +58,7 @@ export default function Paywall({ evaluationId, lockedCount, onUnlocked }: Props
             还有 {lockedCount} 所院校推荐待解锁
           </p>
           <p className="text-graphite text-sm mb-6">
-            仅需 9.9 元，获取完整的冲/稳/保择校方案
+            仅需 9.9 元，解锁全部冲/稳/保择校方案
           </p>
 
           {!orderInfo ? (
