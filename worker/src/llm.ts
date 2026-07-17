@@ -2,31 +2,37 @@ import { EvaluationInput, EvaluationResult, PreviewResult, SchoolRecommendation 
 
 const DASHSCOPE_API_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions'
 
-const SYSTEM_PROMPT = `你是一位资深考研择校顾问。你拥有中国所有研究生院招生信息的专业知识。
+const SYSTEM_PROMPT = `现在是2026年7月，用户正在准备2027年考研（2026年12月初试，2027年3-4月复试）。你需要联网搜索各校近3年（2024-2026）的实际招生数据。
 
-根据用户提供的背景信息，推荐 9 所考研院校，分为三个梯度：
-- 冲刺院校（3所）：有一定难度，需要付出较大努力，但不是完全不可能
-- 稳妥院校（3所）：与用户背景匹配度较高，正常努力即可
-- 保底院校（3所）：录取把握较大
+你是一位资深考研择校顾问。根据用户提供的背景信息，联网搜索并推荐 9 所考研院校，分为三个梯度：
 
-对每所学校，提供：
+冲刺院校（3所）：有一定难度，需要付出较大努力，但不是完全不可能
+稳妥院校（3所）：与用户背景匹配度较高，正常努力即可
+保底院校（3所）：录取把握较大
+
+对每所学校，必须联网搜索后提供真实数据：
 1. 学校名称
 2. 匹配分数（1-100）
-3. 推荐理由（50字以内）
-4. 风险提示（30字以内）
-5. 建议关注的考试科目（2-4门）
-6. 预估分数线参考
+3. 推荐理由（50字以内，须引用真实数据）
+4. 风险提示（30字以内，须引用实际报录比或分数线趋势）
+5. 建议关注的考试科目（2-4门，须与该校实际初试科目一致）
+6. 预估分数线参考（基于近3年数据趋势推算27考研）
 7. 补充说明
-8. 本科歧视程度：低/中/高（该校是否对考研学生本科出身有明显歧视）
-9. 上岸难度：极难/较难/中等/较易（基于报录比、分数线、复试淘汰率综合评估）
+8. 本科歧视程度：低/中/高
+9. 上岸难度：极难/较难/中等/较易
 
-最后给出整体评估总结（100字以内）。
+重要：
+- 所有数据必须来自近3年（2024-2026）官方研招网/学校官网
+- 分数线必须标注是哪一年的数据，如"2026年复试线340"
+- 如果没有搜到最新数据，请标注"数据待核实"
+- 绝对不能编造数据
+- 考试科目必须与该校研究生院官网一致
 
-所有推荐必须标注"AI 生成，仅供参考"。推荐理由需具体，不要泛泛而谈。`
+最后给出整体评估总结（100字以内）。所有推荐必须标注"AI 生成，仅供参考"。`
 
 export function buildUserPrompt(input: EvaluationInput): string {
   const parts = [
-    `请根据以下背景信息推荐考研院校：`,
+    `请根据以下背景信息推荐考研院校（27考研，即2026年12月初试）：`,
     `- 本科院校：${input.school}`,
     `- 本科专业：${input.major}`,
   ]
@@ -35,6 +41,8 @@ export function buildUserPrompt(input: EvaluationInput): string {
   if (input.region) parts.push(`- 意向地区：${input.region}`)
   if (input.english_level) parts.push(`- 英语水平：${input.english_level}`)
 
+  parts.push(``)
+  parts.push(`请联网搜索各校近3年（2024-2026）的复试分数线、报录比、招生人数等真实数据，基于数据趋势推算27考研分数线。务必引用具体年份的数据。`)
   parts.push(``)
   parts.push(`请严格按照以下 JSON 格式返回（不要包含 markdown 代码块标记）：`)
   parts.push(`{
@@ -48,10 +56,10 @@ export function buildUserPrompt(input: EvaluationInput): string {
       "name": "学校名称",
       "tier": "冲刺",
       "match_score": 85,
-      "reason": "推荐理由",
-      "risk_warning": "风险提示",
+      "reason": "推荐理由（含真实数据）",
+      "risk_warning": "风险提示（含报录比/分数线趋势）",
       "exam_subjects": ["科目1", "科目2", "科目3"],
-      "estimate_score": "预估分数线",
+      "estimate_score": "2027预估分数线（基于24-26年数据趋势）",
       "notes": "补充说明",
       "discrimination": "低",
       "difficulty": "较难"
@@ -76,7 +84,7 @@ export async function generateRecommendations(
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'qwen-plus',
+      model: 'qwen-max',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: userPrompt },
