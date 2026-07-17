@@ -12,7 +12,7 @@ export default function EvaluationForm({ onSubmit, isLoading }: Props) {
   const [form, setForm] = useState<EvaluationInput>({
     school: '',
     major: '',
-    gpa: '',
+    estimated_score: '',
     target_major: '',
     region: '',
     english_level: '',
@@ -34,7 +34,7 @@ export default function EvaluationForm({ onSubmit, isLoading }: Props) {
     if (validate()) {
       onSubmit({
         ...form,
-        gpa: form.gpa?.trim() || undefined,
+        estimated_score: form.estimated_score?.trim() || undefined,
         region: form.region?.trim() || undefined,
         english_level: form.english_level?.trim() || undefined,
       })
@@ -101,13 +101,13 @@ export default function EvaluationForm({ onSubmit, isLoading }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-ink mb-1.5">GPA / 成绩排名</label>
+          <label className="block text-sm font-medium text-ink mb-1.5">预估考研分数</label>
           <input
             type="text"
-            className={inputClass('gpa')}
-            placeholder="如：3.5/4.0"
-            value={form.gpa}
-            onChange={e => updateField('gpa', e.target.value)}
+            className={inputClass('estimated_score')}
+            placeholder="如：380"
+            value={form.estimated_score}
+            onChange={e => updateField('estimated_score', e.target.value)}
           />
         </div>
 

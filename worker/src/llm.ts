@@ -28,7 +28,7 @@ export function buildUserPrompt(input: EvaluationInput): string {
     `- 本科院校：${input.school}`,
     `- 本科专业：${input.major}`,
   ]
-  if (input.gpa) parts.push(`- GPA/成绩排名：${input.gpa}`)
+  if (input.estimated_score) parts.push(`- 预估考研分数：${input.estimated_score}`)
   parts.push(`- 目标专业：${input.target_major}`)
   if (input.region) parts.push(`- 意向地区：${input.region}`)
   if (input.english_level) parts.push(`- 英语水平：${input.english_level}`)

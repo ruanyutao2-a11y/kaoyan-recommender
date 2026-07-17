@@ -23,7 +23,7 @@ export async function createEvaluation(
       `INSERT INTO evaluations (id, school, major, gpa, target_major, region, english_level, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, 'processing')`
     )
-    .bind(id, input.school, input.major, input.gpa || null, input.target_major, input.region || null, input.english_level || null)
+    .bind(id, input.school, input.major, input.estimated_score || null, input.target_major, input.region || null, input.english_level || null)
     .run()
   return id
 }

@@ -1,7 +1,7 @@
 export interface EvaluationInput {
   school: string
   major: string
-  gpa?: string
+  estimated_score?: string
   target_major: string
   region?: string
   english_level?: string
