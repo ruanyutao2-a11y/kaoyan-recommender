@@ -1,12 +1,14 @@
 import { Context } from 'hono'
-import { EvaluationInput } from './types'
+import { EvaluationInput, PaymentSubmission } from './types'
 import {
   createEvaluation,
   updateEvaluationResult,
   getEvaluation,
-  createOrder,
-  validateRedeemCode,
-  getOrderByEvaluationId,
+  submitPayment,
+  getOrdersForReview,
+  approveOrder,
+  rejectOrder,
+  getPendingOrderByEvaluation,
 } from './db'
 import { generateRecommendations } from './llm'
 
@@ -23,6 +25,12 @@ function checkRateLimit(ip: string): boolean {
   if (entry.count >= 5) return false
   entry.count++
   return true
+}
+
+function checkAdminAuth(c: Context): boolean {
+  const password = c.req.header('X-Admin-Password')
+  const expected = (c.env.ADMIN_PASSWORD as string) || 'admin123'
+  return password === expected
 }
 
 export async function handleEvaluate(c: Context) {
@@ -92,6 +100,7 @@ export async function handleGetResult(c: Context) {
   const result = JSON.parse(evaluation.result_json || '{}')
   const preview = JSON.parse(evaluation.preview_json || '{}')
 
+  // Already paid → return full result
   if (evaluation.is_paid) {
     return c.json({
       status: 'completed',
@@ -100,69 +109,125 @@ export async function handleGetResult(c: Context) {
     })
   }
 
+  // Check free period
+  if (evaluation.free_until) {
+    const freeUntil = new Date(evaluation.free_until)
+    if (freeUntil > new Date()) {
+      // Still within free window → return full result
+      return c.json({
+        status: 'completed',
+        isPaid: false,
+        isFree: true,
+        freeUntil: evaluation.free_until,
+        data: result,
+      })
+    }
+  }
+
+  // Free window expired, not paid → return preview
   return c.json({
     status: 'completed',
     isPaid: false,
+    isFree: false,
     data: preview,
   })
 }
 
-export async function handleCreateOrder(c: Context) {
-  const body = await c.req.json<{ evaluationId: string }>()
-  if (!body.evaluationId) {
+export async function handleSubmitPayment(c: Context) {
+  const body = await c.req.json<PaymentSubmission>()
+  if (!body.evaluationId || !body.txnRef) {
+    return c.json({ error: '缺少 evaluationId 或转账单号' }, 400)
+  }
+
+  const db = c.env.DB as D1Database
+
+  try {
+    // Check if already has a pending/paid order for this evaluation
+    const existing = await getPendingOrderByEvaluation(db, body.evaluationId) as any
+    if (existing) {
+      if (existing.status === 'paid') {
+        return c.json({ success: true, autoApproved: true, message: '已完成支付' })
+      }
+      return c.json({ success: true, autoApproved: false, message: '已提交，等待审核' })
+    }
+
+    const { orderId, autoApproved } = await submitPayment(
+      db,
+      body.evaluationId,
+      body.txnRef,
+      body.deviceId || ''
+    )
+
+    return c.json({
+      success: true,
+      orderId,
+      autoApproved,
+      message: autoApproved ? '支付验证通过，已解锁全部内容' : '已提交付款信息，等待管理员审核',
+    })
+  } catch (err: any) {
+    console.error('Submit payment error:', err)
+    return c.json({ error: '提交失败，请稍后重试' }, 500)
+  }
+}
+
+export async function handleAdminOrders(c: Context) {
+  if (!checkAdminAuth(c)) {
+    return c.json({ error: '密码错误' }, 401)
+  }
+
+  const db = c.env.DB as D1Database
+  const status = c.req.query('status') || 'created'
+
+  try {
+    const result = await getOrdersForReview(db, status)
+    return c.json({ orders: result.results || [] })
+  } catch (err: any) {
+    console.error('Admin orders error:', err)
+    return c.json({ error: '查询失败' }, 500)
+  }
+}
+
+export async function handleAdminApprove(c: Context) {
+  if (!checkAdminAuth(c)) {
+    return c.json({ error: '密码错误' }, 401)
+  }
+
+  const body = await c.req.json<{ orderId: string; action: 'approve' | 'reject'; notes?: string }>()
+  if (!body.orderId || !body.action) {
+    return c.json({ error: '缺少 orderId 或 action' }, 400)
+  }
+
+  const db = c.env.DB as D1Database
+
+  try {
+    if (body.action === 'approve') {
+      const result = await approveOrder(db, body.orderId, 'admin')
+      return c.json({ success: true, evaluationId: result.evaluationId })
+    } else {
+      await rejectOrder(db, body.orderId, 'admin', body.notes)
+      return c.json({ success: true })
+    }
+  } catch (err: any) {
+    console.error('Admin approve error:', err)
+    return c.json({ error: '操作失败' }, 500)
+  }
+}
+
+export async function handleCheckPaymentStatus(c: Context) {
+  const id = c.req.param('evaluationId')
+  if (!id) {
     return c.json({ error: '缺少 evaluationId' }, 400)
   }
 
   const db = c.env.DB as D1Database
-  const taobaoUrl = (c.env.TAOBAO_PRODUCT_URL as string) || 'https://item.taobao.com/item.htm?id=XXXXX'
 
-  try {
-    const { orderId, redeemCode } = await createOrder(db, body.evaluationId, taobaoUrl)
-
-    return c.json({
-      orderId,
-      taobaoUrl,
-      redeemCode,
-      redirectUrl: taobaoUrl,
-      message: '请在淘宝完成付款后，将订单号输入兑换框即可解锁完整结果',
-    })
-  } catch (err: any) {
-    console.error('Create order error:', err)
-    return c.json({ error: '创建订单失败' }, 500)
-  }
-}
-
-export async function handleRedeem(c: Context) {
-  const body = await c.req.json<{ code: string }>()
-  if (!body.code || body.code.trim().length === 0) {
-    return c.json({ error: '请输入兑换码' }, 400)
+  const order = await getPendingOrderByEvaluation(db, id) as any
+  if (!order) {
+    return c.json({ paid: false, status: 'none' })
   }
 
-  const db = c.env.DB as D1Database
-
-  try {
-    const result = await validateRedeemCode(db, body.code.trim())
-    if (!result.valid) {
-      return c.json({ error: result.message }, 400)
-    }
-
-    const evaluation = await getEvaluation(db, result.evaluationId!) as any
-    const fullResult = JSON.parse(evaluation.result_json || '{}')
-
-    return c.json({
-      success: true,
-      message: result.message,
-      evaluationId: result.evaluationId,
-      data: fullResult,
-    })
-  } catch (err: any) {
-    console.error('Redeem error:', err)
-    return c.json({ error: '兑换失败，请稍后重试' }, 500)
-  }
-}
-
-export async function handleTaobaoCallback(c: Context) {
-  const body = await c.req.text()
-  console.log('Taobao callback received:', body)
-  return c.json({ success: true })
+  return c.json({
+    paid: order.status === 'paid',
+    status: order.status,
+  })
 }
