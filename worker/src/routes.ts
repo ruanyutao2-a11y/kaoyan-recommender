@@ -29,7 +29,11 @@ function checkRateLimit(ip: string): boolean {
 
 function checkAdminAuth(c: Context): boolean {
   const password = c.req.header('X-Admin-Password')
-  const expected = (c.env.ADMIN_PASSWORD as string) || 'admin123'
+  const expected = c.env.ADMIN_PASSWORD as string | undefined
+  if (!expected) {
+    console.error('ADMIN_PASSWORD secret is not set!')
+    return false
+  }
   return password === expected
 }
 

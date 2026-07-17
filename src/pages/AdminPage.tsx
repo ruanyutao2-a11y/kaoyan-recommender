@@ -28,7 +28,8 @@ export default function AdminPage() {
       setOrders(result.orders || [])
     } catch (err: any) {
       setError(err.message || '加载失败')
-      if (err.message?.includes('密码')) {
+      // Auto-logout only on 401 (wrong password)
+      if (err.message?.includes('密码错误')) {
         setIsAuthed(false)
         sessionStorage.removeItem('kaoyan_admin_pw')
       }
