@@ -88,27 +88,26 @@ export default function Paywall({ evaluationId, lockedCount, onUnlocked }: Props
                 付款完成后，联系客服获取兑换码，然后在此输入兑换码解锁
               </p>
 
-              {/* Redeem section */}
-              <div>
-                <div className="flex items-center gap-2 max-w-xs mx-auto">
-                  <input
-                    type="text"
-                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm font-mono uppercase
-                               focus:border-indigo focus:ring-1 focus:ring-indigo"
-                    placeholder="输入兑换码"
-                    value={redeemCode}
-                    onChange={e => setRedeemCode(e.target.value.toUpperCase())}
-                    maxLength={12}
-                  />
-                  <button
-                    onClick={handleRedeem}
-                    disabled={isLoading || redeemCode.length < 8}
-                    className="px-4 py-2 bg-indigo text-white text-sm font-medium rounded-lg
-                               hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    兑换
-                  </button>
-                </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  className="w-56 px-4 py-2.5 rounded-lg border border-gray-200 text-center font-mono text-lg
+                             tracking-widest uppercase bg-gray-50 focus:border-indigo focus:ring-1 focus:ring-indigo
+                             placeholder:text-gray-400 placeholder:tracking-normal placeholder:font-sans placeholder:text-sm"
+                  placeholder="输入 12 位兑换码"
+                  value={redeemCode}
+                  onChange={e => setRedeemCode(e.target.value.toUpperCase())}
+                  maxLength={12}
+                />
+                <button
+                  onClick={handleRedeem}
+                  disabled={isLoading || redeemCode.length < 12}
+                  className="ml-2 px-5 py-2.5 bg-indigo text-white text-sm font-medium rounded-lg
+                             hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors
+                             align-middle"
+                >
+                  {isLoading ? '兑换中...' : '兑换'}
+                </button>
               </div>
             </div>
           )}
